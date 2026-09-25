@@ -163,7 +163,7 @@ Make sure you have:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/paraspalawat/IBVAP.git
+git clone https://github.com/noshikacodes/IBVAP.git
 cd IBVAP
 ```
 
