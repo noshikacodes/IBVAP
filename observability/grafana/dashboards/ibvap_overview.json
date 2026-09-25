@@ -1,0 +1,208 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Camera Grid & Stream Ingestion Telemetry",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "fps"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 1 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "ibvap_camera_fps",
+          "legendFormat": "{{camera_id}} FPS"
+        }
+      ],
+      "title": "Surveillance Camera FPS",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "pps"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 1 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "rate(ibvap_camera_frames_received_total[1m])",
+          "legendFormat": "{{camera_id}} Ingest Rate (fps)"
+        }
+      ],
+      "title": "Frame Ingestion Throughput",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
+      "id": 4,
+      "title": "AI Inference, Multi-Object Tracking & Biometrics",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 9 },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "rate(ibvap_yolo_inference_latency_seconds_sum[1m]) / rate(ibvap_yolo_inference_latency_seconds_count[1m])",
+          "legendFormat": "{{model}} ({{device}})"
+        }
+      ],
+      "title": "YOLO Detection Latency (Avg)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 9 },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "rate(ibvap_bytetrack_latency_seconds_sum[1m]) / rate(ibvap_bytetrack_latency_seconds_count[1m])",
+          "legendFormat": "ByteTrack ({{camera_id}})"
+        }
+      ],
+      "title": "ByteTrack Association Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 9 },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "rate(ibvap_anpr_processed_total[1m])",
+          "legendFormat": "ANPR ({{status}})"
+        },
+        {
+          "expr": "rate(ibvap_frs_processed_total[1m])",
+          "legendFormat": "FRS ({{match_status}})"
+        }
+      ],
+      "title": "ANPR & FRS Processing Throughput",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "id": 8,
+      "title": "Security Alerts, Incidents & Multi-Agency Dispatch",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 17 },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "sum by (severity) (ibvap_alerts_created_total)",
+          "legendFormat": "Severity: {{severity}}"
+        }
+      ],
+      "title": "Security Alerts Created by Severity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 17 },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "sum by (agency, status) (ibvap_incident_dispatches_total)",
+          "legendFormat": "{{agency}} ({{status}})"
+        }
+      ],
+      "title": "Multi-Agency Tactical Dispatches",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 17 },
+      "id": 11,
+      "targets": [
+        {
+          "expr": "ibvap_system_cpu_usage_percent",
+          "legendFormat": "Host CPU %"
+        },
+        {
+          "expr": "ibvap_system_gpu_usage_percent",
+          "legendFormat": "GPU % ({{gpu_index}})"
+        }
+      ],
+      "title": "System Hardware Utilization",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["ibvap", "c2", "border-security", "observability"],
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "IBVAP — Tactical Surveillance & AI System Observability",
+  "uid": "ibvap_system_observability",
+  "version": 1
+}

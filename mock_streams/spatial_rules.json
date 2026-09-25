@@ -1,0 +1,117 @@
+{
+  "camera_id": "CAM_PERIMETER_01",
+  "zones": [
+    {
+      "zone_id": "zone_restricted_patrol",
+      "name": "Restricted Patrol Sector",
+      "polygon": [
+        [
+          40,
+          160
+        ],
+        [
+          600,
+          160
+        ],
+        [
+          600,
+          440
+        ],
+        [
+          40,
+          440
+        ]
+      ],
+      "enabled": true,
+      "severity": "high",
+      "applicable_classes": [
+        "person",
+        "human",
+        "vehicle",
+        "car",
+        "truck",
+        "bus"
+      ],
+      "allowed_classes": [],
+      "loitering_threshold_seconds": 2.0
+    },
+    {
+      "zone_id": "zone_authorized_vehicle_lane",
+      "name": "Authorized Vehicle Corridor",
+      "polygon": [
+        [
+          50,
+          300
+        ],
+        [
+          580,
+          300
+        ],
+        [
+          580,
+          460
+        ],
+        [
+          50,
+          460
+        ]
+      ],
+      "enabled": true,
+      "severity": "medium",
+      "applicable_classes": [
+        "person",
+        "human"
+      ],
+      "allowed_classes": [
+        "car",
+        "bus",
+        "truck"
+      ],
+      "loitering_threshold_seconds": null
+    }
+  ],
+  "tripwires": [
+    {
+      "tripwire_id": "tripwire_perimeter_fence",
+      "name": "Outer Fence Boundary",
+      "pt1": [
+        40,
+        220
+      ],
+      "pt2": [
+        600,
+        220
+      ],
+      "direction": "BIDIRECTIONAL",
+      "enabled": true,
+      "severity": "critical",
+      "applicable_classes": [
+        "person",
+        "human",
+        "vehicle",
+        "car",
+        "truck",
+        "bus"
+      ]
+    },
+    {
+      "tripwire_id": "tripwire_ingress_checkpoint",
+      "name": "North-South Checkpoint",
+      "pt1": [
+        320,
+        120
+      ],
+      "pt2": [
+        320,
+        460
+      ],
+      "direction": "A_TO_B",
+      "enabled": true,
+      "severity": "high",
+      "applicable_classes": [
+        "person",
+        "human"
+      ]
+    }
+  ]
+}

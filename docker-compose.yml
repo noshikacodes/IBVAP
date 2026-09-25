@@ -1,0 +1,159 @@
+# ==============================================================================
+# IBVAP - Intelligent Border Video Analytics Platform
+# Production Multi-Service Stack Orchestration
+# ==============================================================================
+
+networks:
+  ibvap-network:
+    driver: bridge
+    name: ibvap-network
+
+volumes:
+  ibvap-storage:
+    name: ibvap-storage
+
+services:
+  # 1. In-Memory Message Broker (Alert Pub/Sub)
+  redis:
+    image: redis:7-alpine
+    container_name: ibvap-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
+  # 2. Ultra-Low Latency Media Server (RTSP / WebRTC / HLS)
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: ibvap-mediamtx
+    ports:
+      - "8554:8554"   # RTSP
+      - "1935:1935"   # RTMP
+      - "8888:8888"   # HLS
+      - "8889:8889"   # WebRTC
+    environment:
+      - MTX_PROTOCOLS=tcp,udp
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
+  # 3. Core REST & WebSocket Application Service (FastAPI)
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ibvap-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=IBVAP - Intelligent Border Video Analytics Platform
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_ALERT_CHANNEL=ibvap.alerts
+      - MEDIAMTX_RTSP_URL=rtsp://mediamtx:8554
+      - ALLOWED_ORIGINS=["http://localhost","http://localhost:80","http://localhost:5173","http://127.0.0.1","http://127.0.0.1:5173"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      mediamtx:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
+  # 4. Command & Control Web Dashboard (React + Nginx Reverse Proxy)
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: ibvap-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
+  # 5. AI Stream Supervisor (StreamManager + Worker Subprocesses)
+  ai_engine_supervisor:
+    build:
+      context: .
+      dockerfile: ai_engine/Dockerfile
+    container_name: ibvap-ai-supervisor
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_CHANNEL=ibvap.alerts
+      - BACKEND_URL=http://backend:8000/api/v1/alerts
+      - MAX_STREAMS=8
+    volumes:
+      - ./mock_streams:/app/mock_streams
+      - ibvap-storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      mediamtx:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
+  # 6. Observability - Prometheus Metrics Scraper
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ibvap-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
+  # 7. Observability - Grafana Tactical C2 Metrics Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ibvap-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=ibvap_admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards/ibvap:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - ibvap-network
+
