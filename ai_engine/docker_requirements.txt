@@ -1,0 +1,13 @@
+# AI Engine Container Dependencies
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.1.0
+opencv-python-headless>=4.8.0
+numpy>=1.24.0,<3.0.0
+shapely>=2.0.0
+easyocr>=1.7.0
+requests>=2.28.0
+redis>=5.0.0
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
